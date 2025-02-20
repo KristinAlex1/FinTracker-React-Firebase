@@ -9,7 +9,7 @@ const Navbar = () => {
         
 
         {/* Navbar Container */}
-        <div className="w-[80%] h-[5rem] bg-green-500 rounded-lg mt-[2rem] flex items-center justify-between px-6 bg-gradient-to-r from-green-400 to-green-600 shadow-lg">
+        <div className="w-[80%] h-[5rem] bg-gray-900 rounded-lg mt-[2rem] flex items-center justify-between px-6 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 shadow-lg">
           
           {/* Logo */}
           <h1 className="text-3xl font-bold text-white">Fin-Track</h1>
@@ -52,7 +52,7 @@ const Navbar = () => {
             </Link>
             <Link
               to="/get-started"
-              className="px-4 py-2 bg-white text-green-600 font-semibold rounded-lg transition-all duration-300 ease-in-out hover:bg-gray-300"
+              className="px-4 py-2 bg-gray-100 text-black font-semibold rounded-lg transition-all duration-300 ease-in-out hover:bg-gray-500"
             >
               Get Started
             </Link>
