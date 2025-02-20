@@ -9,10 +9,10 @@ const Navbar = () => {
         
 
         {/* Navbar Container */}
-        <div className="w-[80%] h-[5rem] bg-gray-900 rounded-lg mt-[2rem] flex items-center justify-between px-6 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 shadow-lg">
+        <div className="w-[80%] h-[5rem] bg-gray-900 rounded-lg mt-[2rem] font-thin flex items-center justify-between px-6 bg-gradient-to-r from-gray-900 via-blue-800/30 to-gray-900 shadow-lg">
           
           {/* Logo */}
-          <h1 className="text-3xl font-bold text-white">Fin-Track</h1>
+          <h1 className="text-3xl bg-gradient-to-r from-blue-300/60 via-white/30 to-blue-700/30 text-transparent bg-clip-text font-semibold">FinTrack</h1>
 
           {/* Navigation Links */}
           <div className="text-2xl flex space-x-6">
