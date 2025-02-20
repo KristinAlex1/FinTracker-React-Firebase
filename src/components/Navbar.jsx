@@ -15,7 +15,7 @@ const Navbar = () => {
           <h1 className="text-3xl font-bold text-white">Fin-Track</h1>
 
           {/* Navigation Links */}
-          <div className="text-xl flex space-x-6">
+          <div className="text-2xl flex space-x-6">
             <Link
               to="/"
               className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md"
@@ -43,7 +43,7 @@ const Navbar = () => {
           </div>
 
           {/* Auth Links */}
-          <div className="text-xl flex space-x-4">
+          <div className="text-2xl flex space-x-4">
             <Link
               to="/signin"
               className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md"
