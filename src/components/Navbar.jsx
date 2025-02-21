@@ -4,60 +4,39 @@ import { Link } from "react-router-dom";
 const Navbar = () => {
   return (
     <>
-      <div className="flex bg-black items-center justify-center min-h-[6rem] relative">
-        {/* Ensure Gradient Doesn't Block Hover */}
-        
-
+      <div className="flex bg-black items-center justify-center min-h-[6rem] relative px-4">
         {/* Navbar Container */}
-        <div className="w-[80%] h-[5rem] bg-gray-900 rounded-lg mt-[2rem] font-thin flex items-center justify-between px-6 bg-gradient-to-r from-gray-900 via-blue-800/30 to-gray-900 shadow-lg">
-          
+        <div className="w-full md:w-[80%] h-auto md:h-[5rem] bg-gray-900 rounded-lg mt-[2rem] font-thin flex flex-col md:flex-row items-center justify-between px-4 md:px-6 bg-gradient-to-r from-gray-500/30 via-blue-600/50 to-gray-900 shadow-lg">
           {/* Logo */}
-          <h1 className="text-3xl bg-gradient-to-r from-blue-300/60 via-white/30 to-blue-700/30 text-transparent bg-clip-text font-semibold">FinTrack</h1>
+          <h1 className="text-2xl md:text-3xl bg-gradient-to-r from-blue-300/30 via-white/50 to-blue-700/30 text-transparent bg-clip-text font-semibold mb-2 md:mb-0">
+            FinTrack
+          </h1>
 
           {/* Navigation Links */}
-          <div className="text-2xl flex space-x-6">
-            <Link
-              to="/"
-              className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md"
-            >
+          <div className="text-lg md:text-2xl flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
+            <Link to="/" className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md text-center">
               Home
             </Link>
-            <Link
-              to="/expenses"
-              className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md"
-            >
+            <Link to="/expenses" className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md text-center">
               Expenses
             </Link>
-            <Link
-              to="/reports"
-              className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md"
-            >
+            <Link to="/reports" className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md text-center">
               Reports
             </Link>
-            <Link
-              to="/about"
-              className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md"
-            >
+            <Link to="/about" className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md text-center">
               About
             </Link>
           </div>
 
           {/* Auth Links */}
-          <div className="text-2xl flex space-x-4">
-            <Link
-              to="/signin"
-              className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md"
-            >
+          <div className="text-lg md:text-2xl flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mt-2 md:mt-0">
+            <Link to="/signin" className="px-4 py-2 text-white hover:bg-black transition-all duration-300 ease-in-out rounded-md text-center">
               Sign In
             </Link>
-            <Link
-              to="/get-started"
-              className="px-4 py-2 bg-gray-100 text-black font-semibold rounded-lg transition-all duration-300 ease-in-out hover:bg-gray-500"
-            >
+            <Link to="/get-started" className="px-4 py-2 bg-gray-100 text-black font-semibold rounded-lg transition-all duration-300 ease-in-out hover:bg-gray-900 hover:text-white text-center">
               Get Started
             </Link>
           </div>
-
         </div>
       </div>
     </>
