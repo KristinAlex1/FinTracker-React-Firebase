@@ -6,9 +6,9 @@ const Navbar = () => {
     <>
       <div className="flex bg-black items-center justify-center min-h-[6rem] relative px-4">
         {/* Navbar Container */}
-        <div className="w-full md:w-[80%] h-auto md:h-[5rem] bg-gray-900 rounded-lg mt-[2rem] font-thin flex flex-col md:flex-row items-center justify-between px-4 md:px-6 bg-gradient-to-r from-gray-500/30 via-blue-600/50 to-gray-900 shadow-lg">
+        <div className="w-full md:w-[80%] h-auto md:h-[5rem] bg-gray-900 rounded-lg mt-[2rem] font-thin flex flex-col md:flex-row items-center justify-between px-4 md:px-6 bg-gradient-to-r from-blue-800/60 via-gray-600/50 to-blue-700/60 shadow-lg">
           {/* Logo */}
-          <h1 className="text-2xl md:text-3xl bg-gradient-to-r from-blue-300/30 via-white/50 to-blue-700/30 text-transparent bg-clip-text font-semibold mb-2 md:mb-0">
+          <h1 className="text-2xl md:text-3xl bg-gradient-to-r from-blue-500/50 via-white/50 to-blue-700/30 text-transparent bg-clip-text font-semibold mb-2 md:mb-0">
             FinTrack
           </h1>
 

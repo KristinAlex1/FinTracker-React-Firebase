@@ -21,7 +21,7 @@ const Hero = () => {
           </p>
           <p className="text-xl md:text-4xl mt-[2.5rem] ml-0 md:ml-[2rem] font-thin text-center md:text-left">
             With 
-            <span className="bg-gradient-to-r from-blue-300/60 via-white/30 to-blue-700/30 text-transparent bg-clip-text font-semibold">
+            <span className="bg-gradient-to-r from-blue-300/60 via-white/30 to-blue-700/30 ml-[1rem] text-transparent bg-clip-text font-semibold">
               FinTrack
             </span>
             , you get real-time insights, smart budgeting tools, and a seamless
