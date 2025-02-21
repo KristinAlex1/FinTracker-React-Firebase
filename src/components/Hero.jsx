@@ -1,5 +1,6 @@
 import React from "react";
 import heroImage from "../assets/hero.png";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -28,9 +29,12 @@ const Hero = () => {
             way to grow your savings all in a sleek, user-friendly dashboard.
           </p>
           <div className="flex justify-center md:justify-start">
+            <Link to='/signup'>
             <button className="bg-gray-200 mt-[4rem] ml-[2rem] h-[3rem] w-[14rem] rounded-lg text-lg md:text-2xl text-blue-900 ml-[2rem] font-semibold hover:bg-gray-900 hover:text-white transition-all duration-300 ease-in-out">
               Get Started
             </button>
+
+            </Link>
           </div>
         </div>
       </div>
