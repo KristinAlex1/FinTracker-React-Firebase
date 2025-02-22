@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // ✅ Use environment variables with Vite's `import.meta.env`
@@ -15,8 +15,9 @@ const firebaseConfig = {
 
 // ✅ Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
+const provider = new GoogleAuthProvider();
 const db = getFirestore(firebaseApp);
 const auth = getAuth(firebaseApp);
 
-export { auth };
+export { auth,provider };
 export default db;
