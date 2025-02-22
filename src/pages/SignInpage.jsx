@@ -1,41 +1,40 @@
 
-import { signInWithEmailAndPassword } from "firebase/auth/cordova";
 import background from "../assets/backgroundimage.jpg";
-import { useRef, useState } from "react";
+import { useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "./firebase";
-import { showSuccessMessage, showErrorMessage } from "../components/toastNotifications";
+
+import { showSuccessMessage, } from "../components/toastNotifications";
 import Loader from "../components/Loader";
+import { useDispatch, useSelector } from "react-redux";
+import { signInUser } from "../features/userSlice";
 
 
 const SignInpage = () => {
     const emailRef = useRef(null);
     const passwordRef = useRef(null);
     const navigate = useNavigate();
-    const [loading,setLoading] = useState(false);
+    const dispatch = useDispatch();
+    const { loading, error, user } = useSelector((state) => state.user);
 
-    const signIn = (e) => {
+    useEffect(() => {
+        if (user) {
+          showSuccessMessage("Successfully Signed Up!");
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 2000);
+        }
+      }, [user, navigate]);
+
+    const handleSignIn = async (e) => {
         e.preventDefault();
-        setLoading(true)
-    
-        signInWithEmailAndPassword(
-            auth,
-            emailRef.current.value,
-            passwordRef.current.value            
-        )
-        .then((authUser) => {
-            setTimeout(() => {
-            setLoading(false)
-            showSuccessMessage(authUser);
-            navigate('/dashboard')
 
-            })
-            
-        })
-        .catch((error) => {
-            setLoading(false)
-            showErrorMessage(error.message)})
-    };
+        await dispatch(signInUser({
+            email: emailRef.current.value,
+            password:passwordRef.current.value
+        }))
+
+    }
+   
   return (
     <div
   style={{ backgroundImage: `url(${background})` }}
@@ -43,6 +42,7 @@ const SignInpage = () => {
 > {
     loading ? (<Loader/>) : (
   <div className="w-full md:w-[25%] min-h-[33vh] flex flex-col bg-gray-800 p-8 shadow-xl rounded-2xl">
+  {error && <p className="text-red-500 text-center mt-2">{error}</p>}
     <h1 className="text-white text-center text-4xl md:text-5xl font-semibold">
       Sign in
     </h1>
@@ -73,8 +73,9 @@ const SignInpage = () => {
     </div>
 
     <button
-      onClick={signIn}
+      onClick={handleSignIn}
       className="w-full md:w-[40%] h-[3.5rem] md:h-[4rem] self-center bg-gray-900 mt-6 md:mt-[3rem] font-thin text-2xl rounded-3xl shadow-lg hover:bg-blue-900 duration-300 text-white"
+      disabled={loading}
     >
       Sign in
     </button>

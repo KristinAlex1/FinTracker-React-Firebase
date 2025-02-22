@@ -1,93 +1,54 @@
 import background from "../assets/backgroundimage.jpg";
-import {  createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import db, { auth, provider } from "./firebase";
 import { FcGoogle } from "react-icons/fc";
 import { showSuccessMessage, showErrorMessage } from "../components/toastNotifications";
-import { doc, getDoc, setDoc } from "firebase/firestore";
 import Loader from "../components/Loader";
+import { useDispatch, useSelector } from "react-redux";
+import { googleSignIn, registerUser } from "../features/userSlice";
 
 const SignUppage = () => {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const navigate = useNavigate();
   const nameRef = useRef(null)
-  const [loading,setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { loading, error, user } = useSelector((state) => state.user);
 
-  const register = async (e) => {
+  useEffect(() => {
+    if (user) {
+      showSuccessMessage("Successfully Signed Up!");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    }
+  }, [user, navigate]);
+
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    setLoading(true)
 
-    try {
-        
-        const email = emailRef.current.value;
-        const password = passwordRef.current.value;
-        const name = nameRef.current.value;
-    
-        
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password, name);
-        const user = userCredential.user;
-    
-        
-        await setDoc(doc(db, "users", user.uid), {
-          name: name,
-          uid: user.uid,
-          email: user.email,
-          createdAt: new Date().toISOString(),
-          photoURL: "",
-        });
-    
-        
-        
+    await dispatch(registerUser({ 
+        email: emailRef.current.value,
+        password: passwordRef.current.value ,
+        name: nameRef.current.value
+    }));
 
-        setTimeout(() => {
-            navigate("/dashboard");
-            setLoading(false)
-            showSuccessMessage("Successfully Signed Up!");
-
-        },2000);
+            
         
-      } catch (error) {
-        setLoading(false)
-        showErrorMessage(error.message);
-      }
   };
 
+  const handleGoogleSignUp = async () => {
+    try {
+      await dispatch(googleSignIn());
+      showSuccessMessage("Successfully Signed in with Google!");
+    } catch (error) {
+      showErrorMessage(error.message);
+    }
+  };
+  
+
  
-    const signInWithGoogle = async () => {
-        setLoading(true); 
-        try {
-            
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-        
-            
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-        
-            if (!userSnap.exists()) {
-             
-              await setDoc(userRef, {
-                uid: user.uid,
-                name: user.displayName,
-                email: user.email,
-                profilePic: user.photoURL,
-                createdAt: new Date().toISOString(),
-              });
-            }
-        
-            setTimeout(() => {
-                navigate("/dashboard");
-                setLoading(false)
-                showSuccessMessage("Successfully Signed Up!");
     
-            },2000);
-          } catch (error) {
-            setLoading(false)
-            showErrorMessage(error.message);
-          }
-    };
 
 
     return (
@@ -103,6 +64,8 @@ const SignUppage = () => {
                 Sign Up
               </h1>
               <div className="w-[90%] h-[0.1rem] bg-gray-900 mx-auto mt-6 md:mt-8"></div>
+
+              {error && <p className="text-red-500 text-center mt-2">{error}</p>}
       
               <div className="flex mt-6 md:mt-[2rem] flex-col">
                 <label className="text-2xl md:text-3xl mb-2 md:mb-[1rem] font-thin">
@@ -140,8 +103,9 @@ const SignUppage = () => {
               </div>
       
               <button
-                onClick={register}
+                onClick={handleSignUp}
                 className="w-full md:w-[50%] h-[3.5rem] md:h-[4rem] self-center bg-gray-900 mt-6 md:mt-[3rem] font-thin text-2xl rounded-3xl shadow-lg hover:bg-blue-900 duration-300 text-white"
+                disabled={loading}
               >
                 Sign up
               </button>
@@ -149,7 +113,7 @@ const SignUppage = () => {
               <h1 className="text-2xl mt-[1rem] self-center">Or</h1>
       
               <button
-                onClick={signInWithGoogle}
+                onClick={handleGoogleSignUp}
                 className="flex items-center justify-center gap-[0.5rem] w-full md:w-[50%] h-[3.5rem] md:h-[4rem] self-center bg-gray-900 mt-6 md:mt-[1rem] font-thin text-2xl rounded-3xl shadow-lg hover:bg-blue-900 duration-300 text-white"
               >
                 Sign up using <FcGoogle />
