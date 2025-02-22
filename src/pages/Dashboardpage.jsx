@@ -11,10 +11,10 @@ const Dashboardpage = () => {
   const navigate = useNavigate();
 
 
-  const handleSignOut = async (e) => {
-    e.preventDefault();
+  const handleSignOut = async () => {
+    
     try {
-        await dispatch(logoutUser);
+        await dispatch(logoutUser());
         navigate('/')
         showSuccessMessage("Successfully Signed out")
 

@@ -26,6 +26,12 @@ const SignUppage = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    dispatch({ type: "user/setLoading", payload: true });
+
+    setTimeout(() => {
+        navigate("/dashboard");
+        dispatch({ type: "user/setLoading", payload: false }); // ✅ Hide loader after navigation
+      }, 2000);
 
     await dispatch(registerUser({ 
         email: emailRef.current.value,
@@ -38,6 +44,11 @@ const SignUppage = () => {
   };
 
   const handleGoogleSignUp = async () => {
+    dispatch({ type: "user/setLoading", payload: true });
+    setTimeout(() => {
+        navigate("/dashboard");
+        dispatch({ type: "user/setLoading", payload: false }); // ✅ Hide loader after navigation
+      }, 2000);
     try {
       await dispatch(googleSignIn());
       showSuccessMessage("Successfully Signed in with Google!");
