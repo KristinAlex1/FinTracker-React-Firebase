@@ -2,9 +2,9 @@
 import { signInWithEmailAndPassword } from "firebase/auth/cordova";
 import background from "../assets/backgroundimage.jpg";
 import { useRef } from "react";
-import { useNavigate, useNavigation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { auth } from "./firebase";
-
+import { showSuccessMessage, showErrorMessage } from "../components/toastNotifications";
 
 
 const SignInpage = () => {
@@ -21,10 +21,10 @@ const SignInpage = () => {
             passwordRef.current.value            
         )
         .then((authUser) => {
-            console.log(authUser);
+            showSuccessMessage(authUser);
             navigate('/dashboard')
         })
-        .catch((error) => alert(error.message))
+        .catch((error) => showErrorMessage(error.message))
     };
   return (
     <div

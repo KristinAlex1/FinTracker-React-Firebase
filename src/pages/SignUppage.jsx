@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, provider } from "./firebase";
 import { FcGoogle } from "react-icons/fc";
+import { showSuccessMessage, showErrorMessage } from "../components/toastNotifications";
 
 const SignUppage = () => {
   const emailRef = useRef(null);
@@ -19,11 +20,11 @@ const SignUppage = () => {
       passwordRef.current.value
     )
       .then((authUser) => {
-        console.log(authUser);
+        showSuccessMessage("Successfully Signed in!",authUser);
         navigate("/dashboard")
       })
       .catch((error) => {
-        alert(error.message);
+        showErrorMessage(error.message);
       });
   };
 
@@ -31,12 +32,12 @@ const SignUppage = () => {
     const signInWithGoogle = async () => {
       try {
         const result = await signInWithPopup(auth, provider);
-        console.log("User Signed In:", result.user);
+        showSuccessMessage("User Signed In:", result.user);
         
         
         navigate("/dashboard");
       } catch (error) {
-        console.error("Google Sign-In Error:", error.message);
+        showErrorMessage("Google Sign-In Error:", error.message);
       }
     };
 
