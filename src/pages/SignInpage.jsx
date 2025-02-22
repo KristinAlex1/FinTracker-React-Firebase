@@ -1,19 +1,22 @@
 
 import { signInWithEmailAndPassword } from "firebase/auth/cordova";
 import background from "../assets/backgroundimage.jpg";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "./firebase";
 import { showSuccessMessage, showErrorMessage } from "../components/toastNotifications";
+import Loader from "../components/Loader";
 
 
 const SignInpage = () => {
     const emailRef = useRef(null);
     const passwordRef = useRef(null);
     const navigate = useNavigate();
+    const [loading,setLoading] = useState(false);
 
     const signIn = (e) => {
         e.preventDefault();
+        setLoading(true)
     
         signInWithEmailAndPassword(
             auth,
@@ -21,16 +24,24 @@ const SignInpage = () => {
             passwordRef.current.value            
         )
         .then((authUser) => {
+            setTimeout(() => {
+            setLoading(false)
             showSuccessMessage(authUser);
             navigate('/dashboard')
+
+            })
+            
         })
-        .catch((error) => showErrorMessage(error.message))
+        .catch((error) => {
+            setLoading(false)
+            showErrorMessage(error.message)})
     };
   return (
     <div
   style={{ backgroundImage: `url(${background})` }}
   className="bg-cover bg-center flex justify-center items-center h-screen p-4"
->
+> {
+    loading ? (<Loader/>) : (
   <div className="w-full md:w-[25%] min-h-[33vh] flex flex-col bg-gray-800 p-8 shadow-xl rounded-2xl">
     <h1 className="text-white text-center text-4xl md:text-5xl font-semibold">
       Sign in
@@ -68,10 +79,9 @@ const SignInpage = () => {
       Sign in
     </button>
   </div>
+)};
 </div>
-
-    
-  )
-}
+  );
+};
 
 export default SignInpage
