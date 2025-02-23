@@ -1,5 +1,5 @@
 import background from "../assets/backgroundimage.jpg";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { showSuccessMessage, showErrorMessage } from "../components/toastNotifications";
@@ -13,9 +13,16 @@ const SignUppage = () => {
   const navigate = useNavigate();
   const nameRef = useRef(null)
   const dispatch = useDispatch();
-  const { loading, error} = useSelector((state) => state.user);
+  const { loading, error, user } = useSelector((state) => state.user);
 
-  
+  useEffect(() => {
+    if (user) {
+      showSuccessMessage("Successfully Signed Up!");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    }
+  }, [user, navigate]);
 
   const handleSignUp = async (e) => {
     e.preventDefault();

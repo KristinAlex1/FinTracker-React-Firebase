@@ -4,3 +4,7 @@ body {
   font-family: 'Inter', sans-serif;
   @apply bg-black text-white;
 }
+
+.my-blue {
+  @apply bg-[#6495ED];
+}
