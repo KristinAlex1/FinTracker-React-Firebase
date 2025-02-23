@@ -15,7 +15,7 @@ const AddSection = () => {
           >
             <div className="text-4xl mt-[2rem] ml-[2rem] font-normal">Total Income</div>
             <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">$0</div>
-            <button style={{ backgroundColor: "#1244A4" }} className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light">
+            <button style={{ backgroundColor: "#171621" }} className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light">
               Add Income
             </button>
           </div>
@@ -27,7 +27,7 @@ const AddSection = () => {
           >
             <div className="text-4xl mt-[2rem] ml-[2rem] font-normal">Total Expenses</div>
             <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">$0</div>
-            <button style={{ backgroundColor: "#1244A4" }} className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] bg-gray-900 mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light">
+            <button style={{ backgroundColor: "#171621" }} className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] bg-gray-900 mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light">
               Add Expenses
             </button>
           </div>
@@ -39,7 +39,7 @@ const AddSection = () => {
           >
             <div className="text-4xl mt-[2rem] ml-[2rem] font-normal">Current Balance</div>
             <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">$0</div>
-            <button style={{ backgroundColor: "#1244A4" }} className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] bg-gray-900 mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light">
+            <button style={{ backgroundColor: "#171621" }} className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] bg-gray-900 mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light">
               Reset Balance
             </button>
           </div>
