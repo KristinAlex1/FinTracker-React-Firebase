@@ -1,18 +1,26 @@
 import { useEffect, useRef, useState } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaPen, FaPenAlt, FaPenNib, FaSearch } from "react-icons/fa";
 import { showErrorMessage, showSuccessMessage } from "./toastNotifications";
 import db, { auth } from "../pages/firebase";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { FaTrashCan } from "react-icons/fa6";
 
 const Search = () => {
   const [transactions, setTransactions] = useState([]); // Stores transaction list
   const [loading, setLoading] = useState(true); // Controls loading state
   const [searchQuery, setSearchQuery] = useState(""); // Stores search input
   const [user, setUser] = useState(null); // Stores authenticated user
-  const [orderByAmount,setOrderByAmount] = useState(false);
-  const [orderByDate,setOrderByDate] = useState(true);
-  const [selected,setSelected] = useState("date");
+  const [orderByAmount, setOrderByAmount] = useState(null);
+  const [orderByDate, setOrderByDate] = useState(true);
+  const [selected, setSelected] = useState("date");
   const searchRef = useRef();
 
   // ✅ Listen for authentication state changes
@@ -21,9 +29,8 @@ const Search = () => {
       if (currentUser) {
         setUser(currentUser);
         showSuccessMessage("User Logged In");
-        fetchTransactions(currentUser); // ✅ Fetch transactions after 
+        fetchTransactions(currentUser); // ✅ Fetch transactions after
         // user loads
-        
       } else {
         setUser(null);
         setTransactions([]);
@@ -46,39 +53,37 @@ const Search = () => {
         currentUser.uid,
         "transactions"
       );
-      if(orderByDate){
+      if (orderByDate) {
         const q = query(transactionsRef, orderBy("date", "desc"));
 
-      // ✅ Get transactions from Firestore
-      const querySnapshot = await getDocs(q);
+        // ✅ Get transactions from Firestore
+        const querySnapshot = await getDocs(q);
 
-      // ✅ Map data into a usable format
-      const transactions = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+        // ✅ Map data into a usable format
+        const transactions = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-      setTransactions(transactions); // ✅ Store fetched transactions in state
-      setLoading(false);
-
-      }else if (orderByAmount){
+        setTransactions(transactions); // ✅ Store fetched transactions in state
+        setLoading(false);
+      } else if (orderByAmount) {
         const q = query(transactionsRef, orderBy("amount", "desc"));
 
-      // ✅ Get transactions from Firestore
-      const querySnapshot = await getDocs(q);
+        // ✅ Get transactions from Firestore
+        const querySnapshot = await getDocs(q);
 
-      // ✅ Map data into a usable format
-      const transactions = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+        // ✅ Map data into a usable format
+        const transactions = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-      setTransactions(transactions); // ✅ Store fetched transactions in state
-      setLoading(false);
+        setTransactions(transactions); // ✅ Store fetched transactions in state
+        setLoading(false);
       }
 
       // ✅ Query to order transactions by date (most recent first)
-      
     } catch (error) {
       console.error("Error fetching transactions:", error);
       showErrorMessage("Failed to fetch transactions.");
@@ -87,10 +92,35 @@ const Search = () => {
   };
 
   const search = (str) => {
-    const filteredTransactions = transactions.filter((item) => item.name === str);
+    const filteredTransactions = transactions.filter(
+      (item) => item.name === str
+    );
     setTransactions(filteredTransactions);
-  }
+  };
 
+  const deleteSearch = async (id) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const transactionRef = doc(db, "users", user.uid, "transactions", id);
+      await deleteDoc(transactionRef);
+      showSuccessMessage("Transaction deleted successfully!");
+
+      // ✅ Remove deleted transaction from state
+      setTransactions((prevTransactions) =>
+        prevTransactions.filter((transaction) => transaction.id !== id)
+      );
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      showErrorMessage("Failed to delete transaction.");
+    }
+  };
+
+  // ✅ Fetch Transactions on Component Mount
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
   return (
     <>
       <div className="flex mt-[3rem] justify-center items-center">
@@ -99,30 +129,47 @@ const Search = () => {
             <input
               ref={searchRef}
               placeholder=" Search"
-              className="h-[3rem] w-[80%]  mt-[2.5rem] ml-[2rem] border-2 border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-[3rem] w-[80%] mt-[2.5rem] ml-[2rem] border-2 border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button onClick={() => search(searchRef.current.value)}><FaSearch className="h-[1.5rem] w-[1.5rem] font-thin mt-[3rem]" /></button>
-            <button onClick={() => {
-            setOrderByAmount((prevstate) => (!prevstate));
-            setOrderByDate((prevstate) => (!prevstate));
-            setSelected("date")
-            fetchTransactions(user);
-            }} className={`flex justify-center items-center rounded-md h-[3rem] w-[9rem] mt-[2.5rem] hover:bg-blue-100 duration-300 ${selected === "date" ? "bg-blue-100 text-black" : "bg-blue-900"}`}>Order by Date</button>
-            <button onClick={() => {
-            setOrderByAmount((prevstate) => (!prevstate));
-            setOrderByDate((prevstate) => (!prevstate));
-            setSelected("amount");
-            fetchTransactions(user);
-            }} className={`flex justify-center items-center rounded-md h-[3rem] w-[9rem] mt-[2.5rem] hover:bg-blue-100 duration-300 ${selected === "amount" ? "bg-blue-100 text-black" : "bg-blue-900"}`}>Order by Amount</button>
+            <button onClick={() => search(searchRef.current.value)}>
+              <FaSearch className="h-[2.5rem] w-[2.5rem] font-thin mt-[3rem]" />
+            </button>
+            <button
+              onClick={() => {
+                setOrderByDate(true);
+                setOrderByAmount(false);
+                setSelected("date");
+                fetchTransactions(user);
+              }}
+              className={`flex justify-center items-center rounded-md h-[3rem] w-[9rem] mt-[2.5rem] ml-[1rem] hover:bg-blue-100 duration-300 ${
+                selected === "date" ? "bg-blue-100 text-black" : "bg-blue-900"
+              }`}
+            >
+              Order by Date
+            </button>
+            <button
+              onClick={() => {
+                setOrderByAmount(true);
+                setOrderByDate(false);
+                setSelected("amount");
+                fetchTransactions(user);
+              }}
+              className={`flex justify-center items-center rounded-md h-[3rem] w-[9rem] mt-[2.5rem] ml-[1rem] hover:bg-blue-100 duration-300 ${
+                selected === "amount" ? "bg-blue-100 text-black" : "bg-blue-900"
+              }`}
+            >
+              Order by Amount
+            </button>
           </div>
-          <div className="flex flex-col items-center justify-center mt-[2rem] ml-[2rem] w-[90%]">
+          <div className="flex flex-col items-center self-center justify-center mt-[2rem] w-[95%]">
             {/* ✅ Table Headers */}
-            <div className="flex justify-evenly items-center w-full h-[6rem] rounded-lg bg-gray-700 mb-[1rem] font-semibold text-white text-3xl border-b-4 border-gray-700 shadow-md">
+            <div className="flex justify-evenly items-center w-full h-[6rem] rounded-lg bg-gray-950 mb-[1rem] font-semibold text-white text-3xl border-b-4 border-gray-700 shadow-md">
               <h1 className="w-1/5 text-center">Name</h1>
               <h1 className="w-1/5 text-center">Type</h1>
               <h1 className="w-1/5 text-center">Amount</h1>
               <h1 className="w-1/5 text-center">Tag</h1>
               <h1 className="w-1/5 text-center">Date</h1>
+              <h1 className="w-1/5 text-center">Actions</h1>
             </div>
 
             {/* ✅ Transactions List */}
@@ -141,6 +188,12 @@ const Search = () => {
                 <h1 className="w-1/5 text-center">{item.tag}</h1>
                 <h1 className="w-1/5 text-center">
                   {new Date(item.date?.seconds * 1000).toLocaleDateString()}
+                </h1>
+                <h1 className="flex justify-center items-center w-1/5 gap-4 text-center">
+                  <button onClick={() => deleteSearch(item.id)}>
+                    <FaTrashCan className="text-2xl text-red-600 hover:text-red-300" />
+                  </button>
+                  <FaPen className="text-2xl text-blue-800 hover:text-blue-600" />
                 </h1>
               </div>
             ))}
