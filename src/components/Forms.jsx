@@ -1,69 +1,131 @@
-import { useRef, useState } from "react"; 
+import { useState } from "react";
 import db, { auth } from "../pages/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { showErrorMessage, showSuccessMessage } from "./toastNotifications";
 
-const Forms = ({ title = "", addIncome, bgColor = "", addExpenses, addBalance, color = "" }) => {
-  const nameRef = useRef(null);
-  const amountRef = useRef(null);
-  const dateRef = useRef(null);
-  const tagRef = useRef(null);
+const Forms = ({ 
+  title = "", 
+  addIncome, 
+  bgColor = "", 
+  addExpenses, 
+  addBalance, 
+  color = "", 
+  transactionData = null,  
+  edit = false ,
+  onTransactionUpdate = () => {} // ✅ Function to trigger UI refresh
+}) => {
 
+    
+  // ✅ UseState to hold form values
+  const [formData, setFormData] = useState({
+    name: transactionData?.name || "",
+    amount: transactionData?.amount || "",
+    date: transactionData?.date 
+      ? new Date(transactionData.date.seconds * 1000).toISOString().slice(0, 16) 
+      : "",
+    tag: transactionData?.tag || "Food"
+  });
+
+  // ✅ Updates form state on input change
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // ✅ Add New Transaction
   const addTransaction = async () => {
-    const user = auth.currentUser; // ✅ Get the logged-in user
-
+    const user = auth.currentUser;
     if (!user) {
-      showErrorMessage("You must be logged in to add a transaction!");
+        showErrorMessage("You must be logged in to add a transaction!");
+        return;
+    }
+
+    if (!formData.name || !formData.amount || !formData.date) {
+        showErrorMessage("All fields are required!");
+        return;
+    }
+
+    try {
+        const transactionsRef = collection(db, "users", user.uid, "transactions");
+
+        const newTransaction = {
+            name: formData.name,
+            type: title,
+            amount: parseFloat(formData.amount) || 0,
+            tag: formData.tag,
+            date: new Date(formData.date),
+            createdAt: serverTimestamp(),
+            userId: user.uid,
+        };
+
+        // ✅ Add transaction to Firestore and get the ID
+        const docRef = await addDoc(transactionsRef, newTransaction);
+        newTransaction.id = docRef.id; // Assign Firestore-generated ID
+
+        showSuccessMessage("Transaction added successfully!");
+
+        // ✅ Close the form
+        if (addIncome) addIncome();
+        if (addExpenses) addExpenses();
+        if (addBalance) addBalance();
+
+        // ✅ Trigger UI update by adding the new transaction to the list immediately
+        onTransactionUpdate(newTransaction);
+        
+    } catch (error) {
+        console.error("Error adding transaction:", error);
+        showErrorMessage("Failed to add transaction.");
+    }
+};
+
+  // ✅ Edit Existing Transaction
+  const editTransaction = async () => {
+    const user = auth.currentUser;
+    if (!user || !transactionData?.id) {
+      showErrorMessage("Invalid transaction data!");
       return;
     }
 
     try {
-      const transactionsRef = collection(db, "users", user.uid, "transactions");
+      const transactionRef = doc(db, "users", user.uid, "transactions", transactionData.id);
 
-      // ✅ Ensure values are properly extracted
-      const selectedDate = dateRef.current.value ? new Date(dateRef.current.value) : new Date();
-      const selectedTag = tagRef.current.value; // ✅ Correct way to fetch selected value
-
-      // ✅ Add new transaction document
-      await addDoc(transactionsRef, {
-        name: nameRef.current.value || "Unknown",
-        type: title,
-        amount: parseFloat(amountRef.current.value) || 0, // ✅ Convert amount to number
-        tag: selectedTag,
-        date: selectedDate.toISOString(), // ✅ Properly formatted date
-        createdAt: serverTimestamp(),
-        userId: user.uid,
+      await updateDoc(transactionRef, {
+        name: formData.name,
+        amount: parseFloat(formData.amount) || 0,
+        tag: formData.tag,
+        date: new Date(formData.date)
       });
+      
+      showSuccessMessage("Transaction updated successfully!");
 
-      showSuccessMessage("Transaction added successfully!");
+      onTransactionUpdate(); // ✅ Update transactions list after editing
 
-      // ✅ Close form after adding transaction
-      setTimeout(() => {
-        if (addIncome) addIncome();
-        if (addExpenses) addExpenses();
-        if (addBalance) addBalance();
-      }, 1000);
+      if (addIncome) addIncome();
+      if (addExpenses) addExpenses();
+      if (addBalance) addBalance();
     } catch (error) {
-      console.error("Error adding transaction:", error);
-      showErrorMessage("Failed to add transaction.");
+      console.error("Error updating transaction:", error);
+      showErrorMessage("Failed to update transaction.");
     }
   };
 
   return (
     <>
-      {/* ✅ Background Overlay */}
       <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
-        {/* ✅ Form Container */}
-        <div className={`w-full md:w-[40%] lg:w-[25%] min-h-[55%] p-6 rounded-lg shadow-lg relative bg-gradient-to-b from-black/2 via-${color}/10 to-black/60`} style={{ backgroundColor: bgColor }}>
+        <div 
+          className={`w-full max-w-md md:max-w-lg lg:max-w-xl min-h-[55%] p-6 rounded-lg shadow-lg relative bg-gradient-to-b from-black/2 via-${color}/10 to-black/60`}
+          style={{ backgroundColor: bgColor }}
+        >
           <div className="flex items-center justify-between mb-4 md:mb-6">
-            <h2 className="text-2xl md:text-4xl font-bold font-light text-black">Add {title}</h2>
+            <h2 className="text-xl md:text-3xl font-bold text-black">
+              {edit ? "Edit" : "Add"} {title}
+            </h2>
             <button
               onClick={() => {
                 if (addIncome) addIncome();
                 if (addExpenses) addExpenses();
                 if (addBalance) addBalance();
               }}
-              className="flex items-center justify-center h-[2.5rem] w-[2.5rem] text-xl md:text-3xl font-thin hover:bg-red-700 duration-300"
+              className="flex items-center justify-center h-10 w-10 text-xl md:text-3xl font-thin hover:bg-red-700 duration-300"
             >
               X
             </button>
@@ -71,26 +133,51 @@ const Forms = ({ title = "", addIncome, bgColor = "", addExpenses, addBalance, c
 
           <div className="w-full h-[1px] bg-black mb-4 md:mb-6"></div>
 
-          {/* ✅ Form Fields (with spacing) */}
+          {/* ✅ Form Fields */}
           <div className="flex flex-col space-y-4 md:space-y-6">
             <div>
-              <label className="text-xl md:text-3xl text-black">Name</label>
-              <input ref={nameRef} type="text" placeholder="March Salary" className="w-full h-[3rem] md:h-[4rem] p-2 border border-black rounded text-lg md:text-2xl text-black placeholder:text-lg md:placeholder:text-2xl" />
+              <label className="text-lg md:text-xl text-black">Name</label>
+              <input 
+                type="text" 
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="March Salary" 
+                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl text-black"
+              />
             </div>
 
             <div>
-              <label className="text-xl md:text-3xl text-black">Amount</label>
-              <input ref={amountRef} type="number" placeholder="2000" className="w-full h-[3rem] md:h-[4rem] p-2 border border-black rounded text-lg md:text-2xl text-black placeholder:text-lg md:placeholder:text-2xl" />
+              <label className="text-lg md:text-xl text-black">Amount</label>
+              <input 
+                type="number" 
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                placeholder="2000" 
+                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl text-black"
+              />
             </div>
 
             <div>
-              <label className="text-xl md:text-3xl text-black">Date</label>
-              <input ref={dateRef} type="datetime-local" className="w-full h-[3rem] md:h-[4rem] p-2 border border-black rounded text-lg md:text-2xl text-black" />
+              <label className="text-lg md:text-xl text-black">Date</label>
+              <input 
+                type="datetime-local" 
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl text-black"
+              />
             </div>
 
             <div>
-              <label className="text-xl md:text-3xl text-black">Tag</label>
-              <select ref={tagRef} className="w-full h-[3rem] md:h-[4rem] p-2 border border-black rounded text-lg md:text-2xl text-black">
+              <label className="text-lg md:text-xl text-black">Tag</label>
+              <select 
+                name="tag"
+                value={formData.tag}
+                onChange={handleChange}
+                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl text-black"
+              >
                 <option value="Food">🍔 Food</option>
                 <option value="Education">📚 Education</option>
                 <option value="Office">🏢 Office</option>
@@ -99,12 +186,14 @@ const Forms = ({ title = "", addIncome, bgColor = "", addExpenses, addBalance, c
             </div>
           </div>
 
-          {/* ✅ Add Button */}
           <div className="flex justify-center mt-4 md:mt-6">
-            <button onClick={addTransaction} className="w-full md:w-[50%] h-[3rem] md:h-[4rem] bg-gray-900 text-white rounded text-xl md:text-2xl hover:bg-blue-700 duration-300">Add</button>
+            <button onClick={edit ? editTransaction : addTransaction} className="w-full h-10 md:h-12 bg-gray-900 text-white rounded text-lg md:text-xl hover:bg-blue-700 duration-300">
+              {edit ? "Update" : "Add"}
+            </button>
           </div>
         </div>
-      </div>
+      </div> 
+    
     </>
   );
 };

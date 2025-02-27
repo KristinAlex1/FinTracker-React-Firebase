@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import coins from "../assets/coins.png";
 import Forms from "./Forms";
 import Search from "./Search";
+import db, { auth } from "../pages/firebase";
+import { collection, doc, getDocs } from "firebase/firestore";
 
 const AddSection = () => {
   const [isIncome, setIsIncome] = useState(false);
   const [isBalance, setIsBalance] = useState(false);
   const [isExpenses, setIsExpenses] = useState(false);
+  const [updateTrigger, setUpdateTrigger] = useState(false);
+  const [fetchExpenses, setFetchExpenses] = useState({
+    transactions: [],
+    total: 0,
+  });
+  const [fetchIncomes, setFetchIncomes] = useState({
+    transactions: [],
+    total: 0,
+  });
 
   const addIncome = () => {
     setIsIncome((prevstate) => !prevstate);
@@ -17,6 +28,80 @@ const AddSection = () => {
   const addExpenses = () => {
     setIsExpenses((prevstate) => !prevstate);
   };
+  const handleTransactionUpdate = () => {
+    setUpdateTrigger((prev) => !prev); // Toggle state to trigger re-render
+  };
+
+
+  
+   
+
+    useEffect(() => {
+      const transactionsType = async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        try {
+          const transactionsRef = collection(
+            db,
+            "users",
+            user.uid,
+            "transactions"
+          );
+          const querySnapshot = await getDocs(transactionsRef);
+
+          const allTransactions = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          // Filter expenses and income
+          const transactionExpenses = allTransactions.filter(
+            (item) => item.type === "Expenses"
+          );
+          const transactionIncome = allTransactions.filter(
+            (item) => item.type === "Income"
+          );
+
+          // Calculate total amount for expenses and income
+          const totalExpenses = transactionExpenses.reduce(
+            (sum, item) => sum + (item.amount || 0),
+            0
+          );
+          const totalIncome = transactionIncome.reduce(
+            (sum, item) => sum + (item.amount || 0),
+            0
+          );
+
+          // Store transactions and total amount in state
+          setFetchExpenses({
+            transactions: transactionExpenses,
+            total: totalExpenses,
+          });
+          setFetchIncomes({
+            transactions: transactionIncome,
+            total: totalIncome,
+          });
+
+          console.log("Expenses:", {
+            transactions: transactionExpenses,
+            total: totalExpenses,
+          });
+          console.log("Incomes:", {
+            transactions: transactionIncome,
+            total: totalIncome,
+          });
+        } catch (error) {
+          console.log("Error fetching transactions:", error);
+        }
+      };
+
+      transactionsType(); // Call the function inside useEffect
+    }, []);
+
+    
+  
+
   return (
     <>
       <div className="flex justify-center items-center">
@@ -32,7 +117,7 @@ const AddSection = () => {
                 Total Income
               </div>
               <div className="w-[90%] ml-[2rem] h-[0.1%] bg-black"></div>
-              <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">$0</div>
+              <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">${fetchIncomes.total}</div>
               <button
                 onClick={addIncome}
                 className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light cursor-pointer"
@@ -47,7 +132,7 @@ const AddSection = () => {
                 addIncome={addIncome}
                 bgColor="#4F91C3"
                 color="blue"
-                
+                onTransactionUpdate={handleTransactionUpdate}
               />
             )}
 
@@ -60,7 +145,7 @@ const AddSection = () => {
                 Total Expenses
               </div>
               <div className="w-[90%] ml-[2rem] h-[0.1%] bg-black"></div>
-              <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">$0</div>
+              <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">${fetchExpenses.total}</div>
               <button
                 onClick={addExpenses}
                 style={{ backgroundColor: "#171621" }}
@@ -75,6 +160,7 @@ const AddSection = () => {
                 addExpenses={addExpenses}
                 bgColor="#5EA095"
                 color="green"
+                onTransactionUpdate={handleTransactionUpdate}
               />
             )}
 
@@ -102,6 +188,7 @@ const AddSection = () => {
                 addBalance={addBalance}
                 bgColor="#8282CC"
                 color="purple"
+                onTransactionUpdate={handleTransactionUpdate}
               />
             )}
           </div>
@@ -115,7 +202,7 @@ const AddSection = () => {
           </div>
         </div>
       </div>
-      <Search />
+      <Search updateTrigger={updateTrigger} />
     </>
   );
 };
