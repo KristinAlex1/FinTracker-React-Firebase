@@ -13,7 +13,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import Forms from "./Forms";
 
-const Search = ({ updateTrigger }) => {
+const Search = ({ updateTrigger, onTransactionUpdate }) => {
   const [transactions, setTransactions] = useState([]);
   const [user, setUser] = useState(null);
   const [orderByAmount, setOrderByAmount] = useState(false);
@@ -21,6 +21,9 @@ const Search = ({ updateTrigger }) => {
   const [selected, setSelected] = useState("date");
   const searchRef = useRef();
   const [editingTransaction, setEditingTransaction] = useState(null);
+  const [search,setSearch] = useState(null)
+  const [originalTransactions, setOriginalTransactions] = useState([]); // Store the full transactions list
+
 
   const [isIncome, setIsIncome] = useState(false);
   const [isBalance, setIsBalance] = useState(false);
@@ -71,6 +74,7 @@ const Search = ({ updateTrigger }) => {
       }));
 
       setTransactions(transactions);
+      setOriginalTransactions(transactions);
     } catch (error) {
       console.error("Error fetching transactions:", error);
       showErrorMessage("Failed to fetch transactions.");
@@ -83,18 +87,42 @@ const Search = ({ updateTrigger }) => {
 
   const deleteTransaction = async (id) => {
     if (!user) return;
-
+  
     try {
       await deleteDoc(doc(db, "users", user.uid, "transactions", id));
       showSuccessMessage("Transaction deleted successfully!");
       setTransactions(
         transactions.filter((transaction) => transaction.id !== id)
       );
+      setOriginalTransactions(
+        transactions.filter((transaction) => transaction.id !== id)
+      )
+  
+      // ✅ Ensure the totals are updated
+      if (onTransactionUpdate) {
+        onTransactionUpdate();
+      }
     } catch (error) {
       console.error("Error deleting transaction:", error);
       showErrorMessage("Failed to delete transaction.");
     }
   };
+
+  const searchName = (str) => {
+    if (!str) {
+      // ✅ Reset to the full list if the search input is empty
+      setTransactions(originalTransactions);
+      return;
+    }
+  
+    const filteredTransactions = originalTransactions.filter((item) =>
+      item.name.toLowerCase().includes(str.toLowerCase())
+    );
+  
+    setTransactions(filteredTransactions);
+  };
+  
+  
 
   const handleTransactionUpdate = (newTransaction) => {
     if (newTransaction) {
@@ -107,8 +135,13 @@ const Search = ({ updateTrigger }) => {
       if (user) fetchTransactions(user);
     }
     setEditingTransaction(null); // Close the form after editing
+  
+    // ✅ Ensure the totals are updated
+    if (onTransactionUpdate) {
+      onTransactionUpdate();
+    }
   };
-
+  
   return (
     <>
       <div className="flex mt-[3rem] justify-center items-center">
@@ -118,10 +151,10 @@ const Search = ({ updateTrigger }) => {
             <input
               ref={searchRef}
               placeholder="Search"
-              className="h-[3rem] w-full md:w-[70%] border-2 border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 px-3 text-black"
+              className="h-[3rem] w-full md:w-[70%] border-2 border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 px-3 text-gray-200"
             />
             <button
-              onClick={() => fetchTransactions(user)}
+              onClick={() => searchName(searchRef.current.value)}
               className="mt-2 md:mt-0"
             >
               <FaSearch className="h-[2.5rem] w-[2.5rem] text-white" />

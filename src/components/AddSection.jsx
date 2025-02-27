@@ -18,6 +18,7 @@ const AddSection = () => {
     transactions: [],
     total: 0,
   });
+  const [balance,setBalance] = useState(0);
 
   const addIncome = () => {
     setIsIncome((prevstate) => !prevstate);
@@ -29,75 +30,74 @@ const AddSection = () => {
     setIsExpenses((prevstate) => !prevstate);
   };
   const handleTransactionUpdate = () => {
-    setUpdateTrigger((prev) => !prev); // Toggle state to trigger re-render
-  };
+    setUpdateTrigger((prev) => !prev); // ✅ Toggles between `true` and `false` to re-trigger `useEffect`
+  }
 
 
   
    
 
-    useEffect(() => {
-      const transactionsType = async () => {
-        const user = auth.currentUser;
-        if (!user) return;
+  useEffect(() => {
+    const transactionsType = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
 
-        try {
-          const transactionsRef = collection(
-            db,
-            "users",
-            user.uid,
-            "transactions"
-          );
-          const querySnapshot = await getDocs(transactionsRef);
+      try {
+        const transactionsRef = collection(
+          db,
+          "users",
+          user.uid,
+          "transactions"
+        );
+        const querySnapshot = await getDocs(transactionsRef);
 
-          const allTransactions = querySnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
+        const allTransactions = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-          // Filter expenses and income
-          const transactionExpenses = allTransactions.filter(
-            (item) => item.type === "Expenses"
-          );
-          const transactionIncome = allTransactions.filter(
-            (item) => item.type === "Income"
-          );
+        // Filter expenses and income
+        const transactionExpenses = allTransactions.filter(
+          (item) => item.type === "Expenses"
+        );
+        const transactionIncome = allTransactions.filter(
+          (item) => item.type === "Income"
+        );
 
-          // Calculate total amount for expenses and income
-          const totalExpenses = transactionExpenses.reduce(
-            (sum, item) => sum + (item.amount || 0),
-            0
-          );
-          const totalIncome = transactionIncome.reduce(
-            (sum, item) => sum + (item.amount || 0),
-            0
-          );
+        // Calculate total amount for expenses and income
+        const totalExpenses = transactionExpenses.reduce(
+          (sum, item) => sum + (item.amount || 0),
+          0
+        );
+        const totalIncome = transactionIncome.reduce(
+          (sum, item) => sum + (item.amount || 0),
+          0
+        );
+        
 
-          // Store transactions and total amount in state
-          setFetchExpenses({
-            transactions: transactionExpenses,
-            total: totalExpenses,
-          });
-          setFetchIncomes({
-            transactions: transactionIncome,
-            total: totalIncome,
-          });
+        // Store transactions and total amount in state
+        setFetchExpenses({
+          transactions: transactionExpenses,
+          total: totalExpenses,
+        });
+        setFetchIncomes({
+          transactions: transactionIncome,
+          total: totalIncome,
+        });
+        setBalance(totalIncome - totalExpenses)
 
-          console.log("Expenses:", {
-            transactions: transactionExpenses,
-            total: totalExpenses,
-          });
-          console.log("Incomes:", {
-            transactions: transactionIncome,
-            total: totalIncome,
-          });
-        } catch (error) {
-          console.log("Error fetching transactions:", error);
-        }
-      };
+      } catch (error) {
+        console.log("Error fetching transactions:", error);
+      }
+    };
 
-      transactionsType(); // Call the function inside useEffect
-    }, []);
+    transactionsType(); // Call the function inside useEffect
+  }, [updateTrigger]); // ✅ Now updates when transactions change
+
+  useEffect(() => {
+    console.log("Updated Expenses:", fetchExpenses.total);
+    console.log("Updated Incomes:", fetchIncomes.total);
+  }, [fetchExpenses, fetchIncomes]);
 
     
   
@@ -173,7 +173,7 @@ const AddSection = () => {
                 Current Balance
               </div>
               <div className="w-[90%] ml-[2rem] h-[0.1%] bg-black"></div>
-              <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">$0</div>
+              <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">${balance}</div>
               <button
                 onClick={addBalance}
                 style={{ backgroundColor: "#171621" }}
@@ -202,7 +202,8 @@ const AddSection = () => {
           </div>
         </div>
       </div>
-      <Search updateTrigger={updateTrigger} />
+      <Search updateTrigger={updateTrigger} onTransactionUpdate={handleTransactionUpdate} />
+
     </>
   );
 };
