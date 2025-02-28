@@ -8,7 +8,7 @@ import {
 } from "../components/toastNotifications";
 import { useNavigate } from "react-router-dom";
 import AddSection from "../components/AddSection";
-import useTransactions from "../components/useTransaction";
+import useTransactions from "../hooks/useTransaction";
 
 const Dashboardpage = () => {
   const [isOpen, setIsOpen] = useState(false);
