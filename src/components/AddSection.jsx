@@ -4,6 +4,8 @@ import Forms from "./Forms";
 import Search from "./Search";
 import db, { auth } from "../pages/firebase";
 import { collection, doc, getDocs } from "firebase/firestore";
+import Charts from "./Charts";
+
 
 const AddSection = () => {
   const [isIncome, setIsIncome] = useState(false);
@@ -194,14 +196,20 @@ const AddSection = () => {
           </div>
 
           {/* ✅ Bottom Section: Image & Text (Centered & Spaced) */}
-          <div className="flex flex-col justify-center items-center mt-[5rem] md:mt-[10rem] mb-[3rem] w-full">
-            <img src={coins} className="w-[60%] md:w-[20rem]" />
-            <div className="text-white text-2xl md:text-4xl mt-4 md:mt-[2rem] text-center font-thin px-4 md:px-0">
-              You currently have no Transactions recorded!
+          {(balance === 0) && (
+            <div className="flex flex-col justify-center items-center mt-[5rem] md:mt-[10rem] mb-[3rem] w-full">
+              <img src={coins} className="w-[60%] md:w-[20rem]" />
+              <div className="text-white text-2xl md:text-4xl mt-4 md:mt-[2rem] text-center font-thin px-4 md:px-0">
+                You currently have no Transactions recorded!
+              </div>
             </div>
-          </div>
+          )}
+          <Charts/>
         </div>
+        
       </div>
+      
+
       <Search updateTrigger={updateTrigger} onTransactionUpdate={handleTransactionUpdate} />
 
     </>

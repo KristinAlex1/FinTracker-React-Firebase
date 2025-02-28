@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import profileImage from "../assets/Profile.png";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../features/userSlice";
@@ -8,6 +8,7 @@ import {
 } from "../components/toastNotifications";
 import { useNavigate } from "react-router-dom";
 import AddSection from "../components/AddSection";
+import useTransactions from "../components/useTransaction";
 
 const Dashboardpage = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +16,7 @@ const Dashboardpage = () => {
   const navigate = useNavigate();
 
   const user = useSelector((state) => state.user.user);
+  const { transactions, income, expenses, balance, loading, addTransaction } = useTransactions();
 
   const handleSignOut = async () => {
     try {
@@ -60,7 +62,11 @@ const Dashboardpage = () => {
           </div>
         </div>
       </div>
-      <AddSection />
+      
+      {/* ✅ Financial Overview Section */}
+      
+      
+      <AddSection addTransaction={addTransaction} />
     </>
   );
 };
