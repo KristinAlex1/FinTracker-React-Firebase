@@ -117,7 +117,7 @@ const AddSection = () => {
   return (
     <>
       <div className="flex justify-center items-center">
-        <div className="flex flex-row justify-between items-center h-auto md:h-auto mt-[2rem] w-full md:w-[80%] rounded-4xl p-4 md:p-8">
+        <div className="flex flex-col justify-between items-center h-auto md:h-auto mt-[2rem] w-full md:w-[80%] rounded-4xl p-4 md:p-8">
           <div className="grid grid-cols-4 w-full">
             <div className="h-[15rem] w-[90%] rounded-xl p-4 text-white bg-gradient-to-r from-orange-500 via-orange-400 to-red-600">
               <div className="text-4xl mt-[1rem] font-normal">
@@ -208,7 +208,12 @@ const AddSection = () => {
               />
             )}
           </div>
-          <Assets/>
+          <div className="flex mt-[10rem] mb-[20rem]">
+            
+              <Assets/>
+
+          </div>
+          
         </div>
       </div>
       <Search

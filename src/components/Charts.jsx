@@ -37,12 +37,13 @@ ChartJS.register(
   Filler
 );
 
-const Charts = ({ type, tag, chartType }) => {
+const Charts = ({ type, tag, chartType, title, titleSize }) => {
   const [chartData, setChartData] = useState(null);
   const [tagData, setTagData] = useState(null);
   const [sunburstData, setSunburstData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({});
+  const [updateTrigger, setUpdateTrigger] = useState(false);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -80,7 +81,9 @@ const Charts = ({ type, tag, chartType }) => {
           const date = transaction.date?.seconds
             ? new Date(transaction.date.seconds * 1000)
             : null;
-          const month = date ? date.toLocaleString("default", { month: "short" }) : "Unknown";
+          const month = date
+            ? date.toLocaleString("default", { month: "short" })
+            : "Unknown";
 
           const amount = Number(transaction.amount) || 0;
 
@@ -109,21 +112,23 @@ const Charts = ({ type, tag, chartType }) => {
         const expenseData = labels.map((month) => monthlyData[month].expenses);
 
         setChartData({
-          labels,
+          labels: labels.length ? labels : ["No Data"],
           datasets: [
             {
               label: "Income",
-              data: incomeData,
-              backgroundColor: "skyblue",
-              borderColor: "black",
-              borderWidth: 1,
+              data: incomeData.length ? incomeData : [0],
+              backgroundColor: "rgba(255, 99, 132, 1)",
+              borderColor: "rgba(255, 99, 132, 1)",
+              borderWidth: 6,
+              barThickness: 60, // ✅ Make bars bigger
             },
             {
               label: "Expenses",
-              data: expenseData,
-              backgroundColor: "gray",
-              borderColor: "black",
-              borderWidth: 1,
+              data: expenseData.length ? expenseData : [0],
+              backgroundColor: "rgba(0, 123, 255, 1)",
+              borderColor: "rgba(0, 123, 255, 1)",
+              borderWidth: 6,
+              barThickness: 60, // ✅ Make bars bigger
             },
           ],
         });
@@ -146,9 +151,6 @@ const Charts = ({ type, tag, chartType }) => {
           ],
         });
 
-        console.log("Chart Data:", chartData);
-        console.log("Tag Data:", tagData);
-        console.log("Sunburst Data:", sunburstData);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching transactions:", error);
@@ -157,44 +159,121 @@ const Charts = ({ type, tag, chartType }) => {
     };
 
     fetchTransactions();
-  }, []);
+  }, [updateTrigger]);
 
   useEffect(() => {
-    if (tag) {
+    console.log("Updated Chart Data:", chartData);
+    console.log("Updated Tag Data:", tagData);
+    console.log("Updated Sunburst Data:", sunburstData);
+  }, [chartData, tagData, sunburstData]);
+
+  useEffect(() => {
+    if (tag === "tagData") {
       setData(tagData);
-    } else if (type) {
+    } else if (tag === "chartData") {
       setData(chartData);
     }
   }, [chartData, tagData, type, tag]);
 
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false, // ✅ Allow it to stretch
+    aspectRatio: 2, // ✅ Adjusts the height/width ratio
+    layout: {
+      padding: 10, // ✅ More space around the graph
+    },
+    plugins: {
+      legend: {
+        labels: {
+          color: "#ffffff",
+          font: {
+            size: 22, // ✅ Even bigger legend text
+            weight: "thin",
+          },
+        },
+      },
+      title: {
+        display: true,
+        text: title,
+        color: "#ffffff",
+        font: {
+          size: titleSize, // ✅ Bigger and bolder title
+          weight: "bolder",
+        },
+      },
+      tooltip: {
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleColor: "#ffffff",
+        bodyColor: "#dddddd",
+        borderColor: "#ff5733",
+        borderWidth: 15,
+        cornerRadius: 10,
+        titleFont: {
+          size: 32, // ✅ Bigger tooltip title
+          weight: "bold",
+        },
+        bodyFont: {
+          size: 24,
+        },
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: "white",
+          font: { size: 20, weight: "thin" },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.2)",
+        },
+      },
+      y: {
+        ticks: {
+          color: "#ffffff",
+          font: { size: 18, weight: "thin" },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.2)",
+        },
+      },
+    },
+    elements: {
+      bar: {
+        borderWidth: 2, // ✅ Thick bars
+        borderRadius: 5,
+        barThickness: 80, // ✅ Force bigger bars
+      },
+    },
+    animation: {
+      duration: 3000, // ✅ Slower, smoother animation
+      easing: "easeOutBounce",
+    },
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center mt-[5rem]">
-      <h2 className="text-4xl font-thin">Monthly Transactions</h2>
-      <div className="flex items-center justify-center w-[90%]">
-        <div className="grid grid-cols-3 gap-5">
-          {loading || !chartData ? (
-            <p>Loading chart...</p>
-          ) : chartType === "Bar" ? (
-            <Bar data={data} options={{ responsive: true }} />
-          ) : chartType === "Pie" ? (
-            <Pie data={data} options={{ responsive: true }} />
-          ) : chartType === "Doughnut" ? (
-            <Doughnut data={data} options={{ responsive: true }} />
-          ) : chartType === "Radar" ? (
-            <Radar data={data} options={{ responsive: true }} />
-          ) : chartType === "PolarArea" ? (
-            <PolarArea data={data} options={{ responsive: true }} />
-          ) : chartType === "Apex" ? (
-            <ReactApexChart
-              options={{ chart: { type: "treemap" } }}
-              series={sunburstData.series}
-              type="treemap"
-              height={350}
-            />
-          ) : (
-            <p>No chart type selected</p>
-          )}
-        </div>
+    <div className="flex flex-col w-full h-auto">
+      <div className="flex  p-8 rounded-lg shadow-lg w-[30rem] h-[40rem]">
+        {loading || !chartData || !chartData.datasets ? (
+          <p className="text-white text-2xl">Loading chart...</p>
+        ) : (
+          <div className="w-full h-full">
+            {chartType === "Bar" && (
+              <Bar data={data} options={chartOptions} />
+            )}
+            {chartType === "Pie" && (
+              <Pie data={data} options={chartOptions} />
+            )}
+            {chartType === "Doughnut" && (
+              <Doughnut data={data} options={chartOptions} />
+            )}
+            {chartType === "Radar" && (
+              <Radar data={data} options={chartOptions} />
+            )}
+            {chartType === "PolarArea" && (
+              <PolarArea data={data} options={chartOptions} />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
