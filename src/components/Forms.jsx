@@ -9,6 +9,7 @@ const Forms = ({
   bgColor = "", 
   addExpenses, 
   addBalance, 
+  addAssets,
   color = "", 
   transactionData = null,  
   edit = false ,
@@ -67,6 +68,7 @@ const Forms = ({
         if (addIncome) addIncome();
         if (addExpenses) addExpenses();
         if (addBalance) addBalance();
+        if (addAssets) addAssets();
 
         // ✅ Trigger UI update by adding the new transaction to the list immediately
         onTransactionUpdate(newTransaction);
@@ -102,6 +104,7 @@ const Forms = ({
       if (addIncome) addIncome();
       if (addExpenses) addExpenses();
       if (addBalance) addBalance();
+      if (addAssets) addAssets();
     } catch (error) {
       console.error("Error updating transaction:", error);
       showErrorMessage("Failed to update transaction.");
@@ -112,11 +115,11 @@ const Forms = ({
     <>
       <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
         <div 
-          className={`w-full max-w-md md:max-w-lg lg:max-w-xl min-h-[55%] p-6 rounded-lg shadow-lg relative bg-gradient-to-b from-black/2 via-${color}/10 to-black/60`}
-          style={{ backgroundColor: bgColor }}
+          className="w-full max-w-md md:max-w-lg lg:max-w-xl min-h-[47%] p-6 bg-blue-950 rounded-lg shadow-lg relative"
+      
         >
           <div className="flex items-center justify-between mb-4 md:mb-6">
-            <h2 className="text-xl md:text-3xl font-bold text-black">
+            <h2 className="text-xl md:text-4xl font-bold text-white">
               {edit ? "Edit" : "Add"} {title}
             </h2>
             <button
@@ -124,6 +127,7 @@ const Forms = ({
                 if (addIncome) addIncome();
                 if (addExpenses) addExpenses();
                 if (addBalance) addBalance();
+                if (addAssets) addAssets();
               }}
               className="flex items-center justify-center h-10 w-10 text-xl md:text-3xl font-thin hover:bg-red-700 duration-300"
             >
@@ -134,59 +138,69 @@ const Forms = ({
           <div className="w-full h-[1px] bg-black mb-4 md:mb-6"></div>
 
           {/* ✅ Form Fields */}
-          <div className="flex flex-col space-y-4 md:space-y-6">
+          <div className="flex flex-col space-y-4 text-white md:space-y-6">
             <div>
-              <label className="text-lg md:text-xl text-black">Name</label>
+              <label className="text-lg md:text-xl">Name</label>
               <input 
                 type="text" 
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="March Salary" 
-                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl text-black"
+                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 px-3 text-gray-200"
               />
             </div>
 
             <div>
-              <label className="text-lg md:text-xl text-black">Amount</label>
+              <label className="text-lg md:text-xl ">Amount</label>
               <input 
                 type="number" 
                 name="amount"
                 value={formData.amount}
                 onChange={handleChange}
                 placeholder="2000" 
-                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl text-black"
+                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 px-3 text-gray-200 "
               />
             </div>
 
             <div>
-              <label className="text-lg md:text-xl text-black">Date</label>
+              <label className="text-lg md:text-xl ">Date</label>
               <input 
                 type="datetime-local" 
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
-                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl text-black"
+                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 px-3 text-gray-200 "
               />
             </div>
 
             <div>
-              <label className="text-lg md:text-xl text-black">Tag</label>
+              <label className="text-lg md:text-xl ">Tag</label>
               <select 
                 name="tag"
                 value={formData.tag}
                 onChange={handleChange}
-                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl text-black"
+                className="w-full h-10 md:h-12 p-2 border border-black rounded text-lg md:text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 px-3 text-black "
               >
-                <option value="Food">🍔 Food</option>
-                <option value="Education">📚 Education</option>
-                <option value="Office">🏢 Office</option>
-                <option value="Miscellaneous">🔖 Miscellaneous</option>
+                {addAssets ? 
+                (<>
+                  <option value="Home">🏠 Home</option>
+                  <option value="Stock">📈 Stock</option>
+                  <option value="Real Estate">🏢 Real-Estate</option>
+                  <option value="Miscellaneous">🔖 Miscellaneous</option>
+                </>)
+                    :
+                (<>
+                  <option value="Food">🍔 Food</option>
+                  <option value="Education">📚 Education</option>
+                  <option value="Office">🏢 Office</option>
+                  <option value="Miscellaneous">🔖 Miscellaneous</option>
+                </>)}
               </select>
             </div>
           </div>
 
-          <div className="flex justify-center mt-4 md:mt-6">
+          <div className="flex justify-center mt-7 md:mt-7">
             <button onClick={edit ? editTransaction : addTransaction} className="w-full h-10 md:h-12 bg-gray-900 text-white rounded text-lg md:text-xl hover:bg-blue-700 duration-300">
               {edit ? "Update" : "Add"}
             </button>

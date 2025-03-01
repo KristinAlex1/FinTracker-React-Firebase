@@ -28,6 +28,7 @@ const Search = ({ updateTrigger, onTransactionUpdate }) => {
   const [isIncome, setIsIncome] = useState(false);
   const [isBalance, setIsBalance] = useState(false);
   const [isExpenses, setIsExpenses] = useState(false);
+  const [isAssets, setIsAssets] = useState(false);
 
   const addIncome = () => {
     setIsIncome((prevstate) => !prevstate);
@@ -38,6 +39,10 @@ const Search = ({ updateTrigger, onTransactionUpdate }) => {
   const addExpenses = () => {
     setIsExpenses((prevstate) => !prevstate);
   };
+  const addAssets = () => {
+    setIsAssets((prevstate) => !prevstate)
+
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {

@@ -37,11 +37,12 @@ ChartJS.register(
   Filler
 );
 
-const Charts = () => {
+const Charts = ({ type, tag, chartType }) => {
   const [chartData, setChartData] = useState(null);
   const [tagData, setTagData] = useState(null);
   const [sunburstData, setSunburstData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({});
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -49,7 +50,12 @@ const Charts = () => {
       if (!user) return;
 
       try {
-        const transactionsRef = collection(db, "users", user.uid, "transactions");
+        const transactionsRef = collection(
+          db,
+          "users",
+          user.uid,
+          "transactions"
+        );
         const querySnapshot = await getDocs(transactionsRef);
 
         const transactions = querySnapshot.docs.map((doc) => ({
@@ -68,10 +74,14 @@ const Charts = () => {
         const sunburstCategories = {};
 
         transactions.forEach((transaction) => {
+          if (!transaction.date?.seconds) {
+            console.warn(`Transaction ${transaction.id} has no date field.`);
+          }
           const date = transaction.date?.seconds
             ? new Date(transaction.date.seconds * 1000)
-            : new Date();
-          const month = date.toLocaleString("default", { month: "short" });
+            : null;
+          const month = date ? date.toLocaleString("default", { month: "short" }) : "Unknown";
+
           const amount = Number(transaction.amount) || 0;
 
           if (!monthlyData[month]) {
@@ -85,8 +95,12 @@ const Charts = () => {
           }
 
           if (transaction.tag) {
-            tagTotals[transaction.tag] = (tagTotals[transaction.tag] || 0) + amount;
-            sunburstCategories[transaction.tag] = { x: transaction.tag, y: (sunburstCategories[transaction.tag]?.y || 0) + amount };
+            tagTotals[transaction.tag] =
+              (tagTotals[transaction.tag] || 0) + amount;
+            sunburstCategories[transaction.tag] = {
+              x: transaction.tag,
+              y: (sunburstCategories[transaction.tag]?.y || 0) + amount,
+            };
           }
         });
 
@@ -127,7 +141,9 @@ const Charts = () => {
         });
 
         setSunburstData({
-          series: [{ name: "Total Spending", data: Object.values(sunburstCategories) }],
+          series: [
+            { name: "Total Spending", data: Object.values(sunburstCategories) },
+          ],
         });
 
         console.log("Chart Data:", chartData);
@@ -143,20 +159,40 @@ const Charts = () => {
     fetchTransactions();
   }, []);
 
+  useEffect(() => {
+    if (tag) {
+      setData(tagData);
+    } else if (type) {
+      setData(chartData);
+    }
+  }, [chartData, tagData, type, tag]);
+
   return (
     <div className="flex flex-col items-center justify-center mt-[5rem]">
       <h2 className="text-4xl font-thin">Monthly Transactions</h2>
       <div className="flex items-center justify-center w-[90%]">
         <div className="grid grid-cols-3 gap-5">
-          {loading || !chartData ? <p>Loading chart...</p> : <Bar data={chartData} options={{ responsive: true }} />}
-          {loading || !chartData ? <p>Loading chart...</p> : <Pie data={chartData} options={{ responsive: true }} />}
-          {loading || !chartData ? <p>Loading chart...</p> : <Doughnut data={chartData} options={{ responsive: true }} />}
-          {loading || !tagData ? <p>Loading chart...</p> : <Radar data={tagData} options={{ responsive: true }} />}
-          {loading || !tagData ? <p>Loading chart...</p> : <PolarArea data={tagData} options={{ responsive: true }} />}
-          {loading || !sunburstData ? (
+          {loading || !chartData ? (
             <p>Loading chart...</p>
+          ) : chartType === "Bar" ? (
+            <Bar data={data} options={{ responsive: true }} />
+          ) : chartType === "Pie" ? (
+            <Pie data={data} options={{ responsive: true }} />
+          ) : chartType === "Doughnut" ? (
+            <Doughnut data={data} options={{ responsive: true }} />
+          ) : chartType === "Radar" ? (
+            <Radar data={data} options={{ responsive: true }} />
+          ) : chartType === "PolarArea" ? (
+            <PolarArea data={data} options={{ responsive: true }} />
+          ) : chartType === "Apex" ? (
+            <ReactApexChart
+              options={{ chart: { type: "treemap" } }}
+              series={sunburstData.series}
+              type="treemap"
+              height={350}
+            />
           ) : (
-            <ReactApexChart options={{ chart: { type: "treemap" } }} series={sunburstData.series} type="treemap" height={350} />
+            <p>No chart type selected</p>
           )}
         </div>
       </div>

@@ -4,13 +4,13 @@ import Forms from "./Forms";
 import Search from "./Search";
 import db, { auth } from "../pages/firebase";
 import { collection, doc, getDocs } from "firebase/firestore";
-import Charts from "./Charts";
-
+import Assets from "./Assets";
 
 const AddSection = () => {
   const [isIncome, setIsIncome] = useState(false);
   const [isBalance, setIsBalance] = useState(false);
   const [isExpenses, setIsExpenses] = useState(false);
+  const [isAssets, setIsAssets] = useState(false);
   const [updateTrigger, setUpdateTrigger] = useState(false);
   const [fetchExpenses, setFetchExpenses] = useState({
     transactions: [],
@@ -20,7 +20,11 @@ const AddSection = () => {
     transactions: [],
     total: 0,
   });
-  const [balance,setBalance] = useState(0);
+  const [fetchAssets, setFetchAssets] = useState({
+    transactions: [],
+    total: 0,
+  });
+  const [balance, setBalance] = useState(0);
 
   const addIncome = () => {
     setIsIncome((prevstate) => !prevstate);
@@ -31,42 +35,46 @@ const AddSection = () => {
   const addExpenses = () => {
     setIsExpenses((prevstate) => !prevstate);
   };
+  const addAssets = () => {
+    setIsAssets((prevstate) => !prevstate);
+  };
   const handleTransactionUpdate = () => {
-    setUpdateTrigger((prev) => !prev); // ✅ Toggles between `true` and `false` to re-trigger `useEffect`
-  }
+    setUpdateTrigger((prev) => !prev);
 
-
-  
-   
+    setFetchAssets((prevState) => ({
+      ...prevState,
+      total: prevState.total + parseFloat(fetchAssets.total || 0),
+    }));
+  };
 
   useEffect(() => {
     const transactionsType = async () => {
       const user = auth.currentUser;
       if (!user) return;
-
+  
       try {
-        const transactionsRef = collection(
-          db,
-          "users",
-          user.uid,
-          "transactions"
-        );
-        const querySnapshot = await getDocs(transactionsRef);
-
-        const allTransactions = querySnapshot.docs.map((doc) => ({
+        const transactionsRef = collection(db, "users", user.uid, "transactions");
+        const transactionSnapshot = await getDocs(transactionsRef);
+  
+        const allTransactions = transactionSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-
-        // Filter expenses and income
+  
+        console.log("All Transactions:", allTransactions); // ✅ Debugging
+  
         const transactionExpenses = allTransactions.filter(
           (item) => item.type === "Expenses"
         );
         const transactionIncome = allTransactions.filter(
           (item) => item.type === "Income"
         );
-
-        // Calculate total amount for expenses and income
+        const transactionAssets = allTransactions.filter(
+          (item) => item.type === "Assets"
+        ); // ✅ Corrected Assets fetching
+  
+        console.log("Filtered Assets:", transactionAssets); // ✅ Debugging
+  
         const totalExpenses = transactionExpenses.reduce(
           (sum, item) => sum + (item.amount || 0),
           0
@@ -75,9 +83,11 @@ const AddSection = () => {
           (sum, item) => sum + (item.amount || 0),
           0
         );
-        
-
-        // Store transactions and total amount in state
+        const totalAssets = transactionAssets.reduce(
+          (sum, item) => sum + (item.amount || 0),
+          0
+        );
+  
         setFetchExpenses({
           transactions: transactionExpenses,
           total: totalExpenses,
@@ -86,46 +96,61 @@ const AddSection = () => {
           transactions: transactionIncome,
           total: totalIncome,
         });
-        setBalance(totalIncome - totalExpenses)
-
+        setFetchAssets({
+          transactions: transactionAssets, // ✅ Corrected setting of assets state
+          total: totalAssets,
+        });
+  
+        setBalance(totalIncome - totalExpenses);
+  
+        console.log("Total Assets:", totalAssets);
+        
       } catch (error) {
         console.log("Error fetching transactions:", error);
       }
     };
-
-    transactionsType(); // Call the function inside useEffect
-  }, [updateTrigger]); // ✅ Now updates when transactions change
-
-  useEffect(() => {
-    console.log("Updated Expenses:", fetchExpenses.total);
-    console.log("Updated Incomes:", fetchIncomes.total);
-  }, [fetchExpenses, fetchIncomes]);
-
-    
+  
+    transactionsType();
+  }, [updateTrigger]);
   
 
   return (
     <>
       <div className="flex justify-center items-center">
-        <div className="flex flex-col justify-between items-center h-auto md:h-auto mt-[2rem] w-full md:w-[95%] bg-gray-900 rounded-4xl p-4 md:p-8">
-          {/* ✅ Top Section: Centered Income, Expenses, Balance Divs */}
-          <div className="flex flex-col md:flex-row justify-center md:justify-evenly w-full">
-            {/* Total Income */}
-            <div
-              style={{ backgroundColor: "#87CEEB" }}
-              className="h-[15rem] w-full md:w-[30rem] lg:w-[45rem] mt-[3rem] text-black rounded-xl bg-gradient-to-r from-black/40 via-white/20 to-black/40 p-4"
-            >
-              <div className="text-4xl mt-[1rem] ml-[2rem] font-normal">
-                Total Income
+        <div className="flex flex-row justify-between items-center h-auto md:h-auto mt-[2rem] w-full md:w-[80%] rounded-4xl p-4 md:p-8">
+          <div className="grid grid-cols-4 w-full">
+            <div className="h-[15rem] w-[90%] rounded-xl p-4 text-white bg-gradient-to-r from-orange-500 via-orange-400 to-red-600">
+              <div className="text-4xl mt-[1rem] font-normal">
+                Current Balance
               </div>
-              <div className="w-[90%] ml-[2rem] h-[0.1%] bg-black"></div>
-              <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">${fetchIncomes.total}</div>
+              <div className="text-3xl mt-[1rem] font-normal">${balance}</div>
+              <button
+                onClick={addBalance}
+                className="mt-[2rem] w-[5rem] h-[3rem] bg-amber-700 hover:bg-gray-900 rounded-xl text-3xl text-white"
+              >
+                +
+              </button>
+            </div>
+            {isBalance && (
+              <Forms
+                title="Balance"
+                addBalance={addBalance}
+                bgColor="#D84315"
+                color="red"
+                onTransactionUpdate={handleTransactionUpdate} // ✅ Passed correctly
+              />
+            )}
+
+            <div className="h-[15rem] rounded-xl p-4 w-[90%] text-white bg-gradient-to-r from-blue-600 via-blue-500 to-blue-800">
+              <div className="text-4xl mt-[1rem] font-normal">Total Income</div>
+              <div className="text-3xl mt-[1rem] font-normal">
+                ${fetchIncomes.total}
+              </div>
               <button
                 onClick={addIncome}
-                className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light cursor-pointer"
-                style={{ backgroundColor: "#171621" }}
+                className="mt-[2rem] w-[5rem] h-[3rem] bg-blue-700 hover:bg-gray-900 rounded-xl text-3xl text-white"
               >
-                Add Income
+                +
               </button>
             </div>
             {isIncome && (
@@ -138,22 +163,18 @@ const AddSection = () => {
               />
             )}
 
-            {/* Total Expenses */}
-            <div
-              style={{ backgroundColor: "#96DED1" }}
-              className="h-[15rem] w-full md:w-[30rem] lg:w-[45rem] mt-[3rem] text-black rounded-xl bg-gradient-to-r from-black/40 via-white/20 to-black/40 p-4"
-            >
-              <div className="text-4xl mt-[1rem] ml-[2rem] font-normal">
+            <div className="h-[15rem] rounded-xl p-4 w-[90%] text-white bg-gradient-to-r from-green-600 via-green-500 to-green-800">
+              <div className="text-4xl mt-[1rem] font-normal">
                 Total Expenses
               </div>
-              <div className="w-[90%] ml-[2rem] h-[0.1%] bg-black"></div>
-              <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">${fetchExpenses.total}</div>
+              <div className="text-3xl mt-[1rem] font-normal">
+                ${fetchExpenses.total}
+              </div>
               <button
                 onClick={addExpenses}
-                style={{ backgroundColor: "#171621" }}
-                className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] bg-gray-900 mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light cursor-pointer"
+                className="mt-[2rem] w-[5rem] h-[3rem] bg-green-700 hover:bg-gray-900 rounded-xl text-3xl text-white"
               >
-                Add Expenses
+                +
               </button>
             </div>
             {isExpenses && (
@@ -162,56 +183,38 @@ const AddSection = () => {
                 addExpenses={addExpenses}
                 bgColor="#5EA095"
                 color="green"
-                onTransactionUpdate={handleTransactionUpdate}
+                onTransactionUpdate={handleTransactionUpdate} // ✅ Passed correctly
               />
             )}
-
-            {/* Current Balance */}
-            <div
-              style={{ backgroundColor: "#CCCCFF" }}
-              className="h-[15rem] w-full md:w-[30rem] lg:w-[45rem] mt-[3rem] text-black rounded-xl bg-gradient-to-r from-black/40 via-white/20 to-black/40 p-4"
-            >
-              <div className="text-4xl mt-[1rem] ml-[2rem] font-normal">
-                Current Balance
+            <div className="h-[15rem] rounded-xl p-4 w-[90%] text-white bg-gradient-to-r from-purple-500 via-purple-400 to-purple-800">
+              <div className="text-4xl mt-[1rem] font-normal">Assets</div>
+              <div className="text-3xl mt-[1rem] font-normal">
+                ${fetchAssets.total}
               </div>
-              <div className="w-[90%] ml-[2rem] h-[0.1%] bg-black"></div>
-              <div className="text-3xl mt-[1rem] ml-[2rem] font-normal">${balance}</div>
               <button
-                onClick={addBalance}
-                style={{ backgroundColor: "#171621" }}
-                className="w-[80%] md:w-[35rem] h-[3rem] mt-[2rem] bg-gray-900 mx-auto md:ml-[4rem] rounded-xl text-3xl text-white font-light cursor-pointer"
+                onClick={addAssets}
+                className="mt-[2rem] w-[5rem] h-[3rem] bg-purple-700 hover:bg-gray-900 rounded-xl text-3xl text-white"
               >
-                Reset Balance
+                +
               </button>
             </div>
-            {isBalance && (
+            {isAssets && (
               <Forms
-                title="Balances"
-                addBalance={addBalance}
-                bgColor="#8282CC"
+                title="Assets"
+                addAssets={addAssets}
+                bgColor="#8A2BE2"
                 color="purple"
-                onTransactionUpdate={handleTransactionUpdate}
+                onTransactionUpdate={handleTransactionUpdate} // ✅ Passed correctly
               />
             )}
           </div>
-
-          {/* ✅ Bottom Section: Image & Text (Centered & Spaced) */}
-          {(balance === 0) && (
-            <div className="flex flex-col justify-center items-center mt-[5rem] md:mt-[10rem] mb-[3rem] w-full">
-              <img src={coins} className="w-[60%] md:w-[20rem]" />
-              <div className="text-white text-2xl md:text-4xl mt-4 md:mt-[2rem] text-center font-thin px-4 md:px-0">
-                You currently have no Transactions recorded!
-              </div>
-            </div>
-          )}
-          <Charts/>
+          <Assets/>
         </div>
-        
       </div>
-      
-
-      <Search updateTrigger={updateTrigger} onTransactionUpdate={handleTransactionUpdate} />
-
+      <Search
+        updateTrigger={updateTrigger}
+        onTransactionUpdate={handleTransactionUpdate}
+      />
     </>
   );
 };
