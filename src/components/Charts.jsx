@@ -111,39 +111,43 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
         const incomeData = labels.map((month) => monthlyData[month].income);
         const expenseData = labels.map((month) => monthlyData[month].expenses);
 
-        setChartData({
-          labels: labels.length ? labels : ["No Data"],
+        const predefinedColors = [
+          "rgba(255, 99, 132, 0.8)", // Red
+          "rgba(54, 162, 235, 0.8)", // Blue
+          "rgba(255, 206, 86, 0.8)", // Yellow
+          "rgba(75, 192, 192, 0.8)", // Green
+          "rgba(153, 102, 255, 0.8)", // Purple
+          "rgba(255, 159, 64, 0.8)", // Orange
+          "rgba(201, 203, 207, 0.8)", // Gray
+        ];
+        
+        // ✅ Assign colors explicitly based on index
+        const tagLabels = Object.keys(tagTotals);
+        const tagValues = Object.values(tagTotals);
+        
+        // Ensure we don't run out of colors
+        const backgroundColors = tagLabels.map((_, i) => predefinedColors[i % predefinedColors.length]);
+        const borderColors = backgroundColors.map(color => color.replace("0.8", "1")); // Darker border
+        
+        setTagData({
+          labels: tagLabels,
           datasets: [
             {
-              label: "Income",
-              data: incomeData.length ? incomeData : [0],
-              backgroundColor: "rgba(255, 99, 132, 1)",
-              borderColor: "rgba(255, 99, 132, 1)",
-              borderWidth: 6,
-              barThickness: 60, // ✅ Make bars bigger
-            },
-            {
-              label: "Expenses",
-              data: expenseData.length ? expenseData : [0],
-              backgroundColor: "rgba(0, 123, 255, 1)",
-              borderColor: "rgba(0, 123, 255, 1)",
-              borderWidth: 6,
-              barThickness: 60, // ✅ Make bars bigger
+              label: "Spending by Category",
+              data: tagValues,
+              backgroundColor: backgroundColors, // ✅ Assign unique colors
+              borderColor: borderColors, // ✅ Darker border
+              borderWidth: 2,
             },
           ],
         });
 
-        setTagData({
-          labels: Object.keys(tagTotals),
-          datasets: [
-            {
-              label: "Spending by Category",
-              data: Object.values(tagTotals),
-              backgroundColor: "rgba(54, 162, 235, 0.5)",
-              borderColor: "rgba(54, 162, 235, 1)",
-            },
-          ],
-        });
+        
+
+        // 🔍 Debugging: Check Colors in Console
+        console.log("Tag Labels:", tagLabels);
+        console.log("Tag Data:", tagValues);
+        console.log("Generated Colors:", backgroundColors);
 
         setSunburstData({
           series: [
@@ -168,12 +172,12 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
   }, [chartData, tagData, sunburstData]);
 
   useEffect(() => {
-    if (tag === "tagData") {
+    if (tag === "tagData" && tagData) {
       setData(tagData);
-    } else if (tag === "chartData") {
+    } else if (tag === "chartData" && chartData) {
       setData(chartData);
     }
-  }, [chartData, tagData, type, tag]);
+  }, [chartData, tagData, tag]);
 
   const chartOptions = {
     responsive: true,
@@ -257,12 +261,8 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
           <p className="text-white text-2xl">Loading chart...</p>
         ) : (
           <div className="w-full h-full">
-            {chartType === "Bar" && (
-              <Bar data={data} options={chartOptions} />
-            )}
-            {chartType === "Pie" && (
-              <Pie data={data} options={chartOptions} />
-            )}
+            {chartType === "Bar" && <Bar data={data} options={chartOptions} />}
+            {chartType === "Pie" && <Pie data={data} options={chartOptions} />}
             {chartType === "Doughnut" && (
               <Doughnut data={data} options={chartOptions} />
             )}
