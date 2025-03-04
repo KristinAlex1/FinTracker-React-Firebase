@@ -1,4 +1,4 @@
-import React from "react";
+
 import Charts from "./Charts";
 
 const Assets = () => {

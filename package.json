@@ -17,7 +17,7 @@
     "chartjs-chart-funnel": "^4.2.4",
     "chartjs-chart-geo": "^4.3.4",
     "chartjs-chart-treemap": "^3.1.0",
-    "firebase": "^11.3.1",
+    "firebase": "^11.4.0",
     "framer-motion": "^12.4.7",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",
