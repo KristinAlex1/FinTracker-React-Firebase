@@ -17,6 +17,7 @@ import {
 
 import "chartjs-chart-funnel";
 import "chartjs-chart-geo";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
 import db, { auth } from "../pages/firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -34,7 +35,8 @@ ChartJS.register(
   LineElement,
   ArcElement,
   RadialLinearScale,
-  Filler
+  Filler,
+  ChartDataLabels
 );
 
 const Charts = ({ type, tag, chartType, title, titleSize }) => {
@@ -60,29 +62,29 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
 
   const fetchTransactions = async (userId) => {
     if (!userId) return;
-  
+
     try {
       const transactionsRef = collection(db, "users", userId, "transactions");
       const querySnapshot = await getDocs(transactionsRef);
-  
+
       const transactions = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-  
+
       if (!transactions.length) {
         console.warn("No transactions found");
         setLoading(false);
         return;
       }
-  
+
       console.log("Fetched transactions:", transactions); // ✅ Debugging Log
-  
+
       const monthlyData = {};
       const tagTotals = {};
       const typeTotals = { Income: 0, Expenses: 0, Assets: 0 }; // ✅ NEW: Store type-wise totals
       const sunburstCategories = {};
-  
+
       transactions.forEach((transaction) => {
         if (!transaction.date?.seconds) {
           console.warn(`Transaction ${transaction.id} has no date field.`);
@@ -93,13 +95,13 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
         const month = date
           ? date.toLocaleString("default", { month: "short" })
           : "Unknown";
-  
+
         const amount = Number(transaction.amount) || 0;
-  
+
         if (!monthlyData[month]) {
           monthlyData[month] = { income: 0, expenses: 0, assets: 0 };
         }
-  
+
         if (transaction.type === "Income") {
           monthlyData[month].income += amount;
           typeTotals.Income += amount; // ✅ Add to Income total
@@ -110,7 +112,7 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
           monthlyData[month].assets += amount;
           typeTotals.Assets += amount; // ✅ Add to Assets total
         }
-  
+
         if (transaction.tag) {
           tagTotals[transaction.tag] =
             (tagTotals[transaction.tag] || 0) + amount;
@@ -120,12 +122,12 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
           };
         }
       });
-  
+
       const labels = Object.keys(monthlyData);
       const incomeData = labels.map((month) => monthlyData[month].income);
       const expenseData = labels.map((month) => monthlyData[month].expenses);
       const assetData = labels.map((month) => monthlyData[month].assets);
-  
+
       const predefinedColors = [
         "rgba(255, 99, 132, 0.8)", // Red
         "rgba(54, 162, 235, 0.8)", // Blue
@@ -135,11 +137,11 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
         "rgba(255, 159, 64, 0.8)", // Orange
         "rgba(201, 203, 207, 0.8)", // Gray
       ];
-  
+
       // ✅ Assign colors explicitly based on index
       const tagLabels = Object.keys(tagTotals);
       const tagValues = Object.values(tagTotals);
-  
+
       // Ensure we don't run out of colors
       const backgroundColors = tagLabels.map(
         (_, i) => predefinedColors[i % predefinedColors.length]
@@ -147,7 +149,7 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
       const borderColors = backgroundColors.map((color) =>
         color.replace("0.8", "1")
       ); // Darker border
-  
+
       const newTagData = {
         labels: tagLabels,
         datasets: [
@@ -160,15 +162,15 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
           },
         ],
       };
-  
+
       if (newTagData.datasets[0].data.length > 0) {
         setTagData(newTagData);
       } else {
         console.warn("No tag data to display.");
       }
-  
+
       console.log("Final Tag Data:", newTagData); // ✅ Debugging Log
-  
+
       // ✅ NEW: Create `chartData` for transaction types
       const newChartData = {
         labels: ["Income", "Expenses", "Assets"], // ✅ Transaction Types
@@ -176,34 +178,34 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
           {
             label: "Financial Summary",
             data: [typeTotals.Income, typeTotals.Expenses, typeTotals.Assets], // ✅ Values for each type
-            backgroundColor: ["#4CAF50", "#F44336", "#FFEB3B"], // Green, Red, Yellow
-            borderColor: ["#388E3C", "#D32F2F", "#FBC02D"],
+            backgroundColor: ["#36A2EB", "#4BC0C0", "#FF9F40"], // Green, Red, Yellow
+            borderColor: ["#9BD1FA", "#A7E5E5", "#FFD8B0"],
             borderWidth: 2,
           },
         ],
       };
-  
+
       if (newChartData.datasets[0].data.some((value) => value > 0)) {
         setChartData(newChartData);
       } else {
         console.warn("No type data to display.");
       }
-  
+
       console.log("Final Chart Data:", newChartData); // ✅ Debugging Log
-  
+
       setSunburstData({
         series: [
           { name: "Total Spending", data: Object.values(sunburstCategories) },
         ],
       });
-  
+
       setLoading(false);
     } catch (error) {
       console.error("Error fetching transactions:", error);
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     console.log("Checking Data Availability...");
     console.log("Chart Data:", chartData);
@@ -263,6 +265,15 @@ const Charts = ({ type, tag, chartType, title, titleSize }) => {
         },
         bodyFont: {
           size: 24,
+        },
+      },
+      datalabels: {
+        color: "#fff", // White text
+        font: { size: 20, weight: "bold" },
+        formatter: (value, context) => {
+          let total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+          let percentage = ((value / total) * 100).toFixed(1) + "%";
+          return percentage;
         },
       },
     },

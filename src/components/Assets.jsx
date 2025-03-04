@@ -46,7 +46,7 @@ const Assets = () => {
         <Charts
           chartType="Pie"
           tag="tagData"
-          title="Income vs Expenses"
+          title="Spending Pie"
           titleSize="32"
         />
       </div>
