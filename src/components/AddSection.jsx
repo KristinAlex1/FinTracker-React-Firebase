@@ -208,7 +208,7 @@ const AddSection = () => {
               />
             )}
           </div>
-          <div className="flex mt-[10rem] mb-[20rem]">
+          <div className="flex mt-[10rem]">
             
               <Assets/>
 

@@ -390,7 +390,7 @@ const Charts = ({ type, tag, chartType, title, titleSize, fontSize }) => {
         ticks: {
           color: "#ffffff",
           font: { size: 24, weight: "normal" },
-          stepSize: 500,
+          stepSize: 50,
           callback: (value) => `$${value.toLocaleString()}`,
         },
         grid: {
@@ -414,7 +414,7 @@ const Charts = ({ type, tag, chartType, title, titleSize, fontSize }) => {
     elements: {
       line: {
         tension: 0.3, // Ensures a smooth line
-        borderWidth: 2, // Thinner lines for better scaling
+        borderWidth: 4, // Thinner lines for better scaling
       },
       point: {
         radius: 6, // Reduce point size for balance
@@ -451,7 +451,7 @@ const Charts = ({ type, tag, chartType, title, titleSize, fontSize }) => {
               <PolarArea data={data} options={chartOptions} />
             )}
             {chartType === "Line" && data.datasets.length > 0 && (
-              <div className="w-[80rem] h-[40rem] p-6 bg-dark-900 rounded-lg shadow-lg">
+              <div className="w-[60rem] h-[50rem] p-6 bg-dark-900 rounded-lg shadow-lg py-5">
                 <Line data={data} options={chartOptions} />
               </div>
             )}
